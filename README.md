@@ -23,4 +23,5 @@ Similar project:
 
 - [pmalmgren/rust-calculator](https://github.com/pmalmgren/rust-calculator)
 - [rekka/meval-rs](https://github.com/rekka/meval-rs)
+- [adriaN/simple_rust_parser](https://github.com/adrianN/simple_rust_parser)
 
