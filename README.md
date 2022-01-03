@@ -1,0 +1,26 @@
+Mathematical Expression Evaluator.
+
+Includes:
+
+- sum
+- subtraction
+- multiplication
+- division
+- integers
+- floats
+- parentheses
+- arbitrary whitespace
+
+Goals:
+
+- Minimal
+- Fast: O(n)
+- No allocations if possible
+- Thoroughly tested
+- Having fun
+
+Similar project:
+
+- [pmalmgren/rust-calculator](https://github.com/pmalmgren/rust-calculator)
+- [rekka/meval-rs](https://github.com/rekka/meval-rs)
+
