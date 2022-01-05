@@ -16,6 +16,7 @@ Goals:
 - Minimal
 - Fast: O(n)
 - No allocations if possible
+- We can assume the input is ASCII, and throw an error otherwise
 - Thoroughly tested
 - Having fun
 
