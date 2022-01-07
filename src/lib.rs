@@ -53,7 +53,7 @@ enum Token {
 }
 
 fn get_tokens(expression: &str) -> Result<Vec<Token>> {
-    dbg!(expression);
+    // dbg!(expression);
     let chars = expression.as_bytes();
     let mut tokens = Vec::with_capacity(chars.len() / 2 + 1);
 
@@ -128,7 +128,7 @@ fn get_tokens(expression: &str) -> Result<Vec<Token>> {
         _ => ()
     }
 
-    dbg!(&tokens);
+    // dbg!(&tokens);
     Ok(tokens)
 }
 
