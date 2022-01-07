@@ -23,7 +23,14 @@ const N9: u8 = 57;
 pub enum MexeError {
     /// Invalid character at the specified index
     InvalidCharacter(usize),
+
+    /// Unexpected character (u8) at index
     UnexpectedCharacter(u8, usize),
+
+    /// Binary expression should be: number operator number
+    InvalidBinaryExpression,
+    MissingOperand,
+    MissingOperator
 }
 
 /// Represents the result of any fallible operation in this library
@@ -130,10 +137,7 @@ fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 /// The expression can contain integers, floats, sums, subtractions,
 /// multiplications, divisions and can use parentheses. Whitespace is ignored.
 pub fn eval(expression: &str) -> Result<f64> {
-    let mut tokens = match get_tokens(expression) {
-        Ok(tokens) => tokens,
-        Err(err) => return Err(err),
-    };
+    let mut tokens = get_tokens(expression)?;
 
     unimplemented!();
 }
@@ -141,7 +145,29 @@ pub fn eval(expression: &str) -> Result<f64> {
 /// Evaluates a numeric expression assuming it is just one operation between
 /// two numbers, without parentheses. Whitespace is ignored.
 pub fn eval_binary(expression: &str) -> Result<f64> {
-    unimplemented!();
+    let mut tokens = get_tokens(expression)?;
+
+    if tokens.len() != 3 {
+        return Err(MexeError::InvalidBinaryExpression);
+    }
+
+    let lhs = match tokens.get(0).unwrap() {
+        Token::Number(n) => n,
+        _ => return Err(MexeError::MissingOperand)
+    };
+
+    let rhs = match tokens.get(2).unwrap() {
+        Token::Number(n) => n,
+        _ => return Err(MexeError::MissingOperand)
+    };
+
+    match tokens.get(1).unwrap() {
+        Token::Op(Operator::Plus) => Ok(lhs + rhs),
+        Token::Op(Operator::Minus) => Ok(lhs - rhs),
+        Token::Op(Operator::Mul) => Ok(lhs * rhs),
+        Token::Op(Operator::Div) => Ok(lhs / rhs),
+        _ => Err(MexeError::MissingOperator)
+    }
 }
 
 #[cfg(test)]
