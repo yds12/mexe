@@ -30,13 +30,16 @@ pub enum MexeError {
     /// Binary expression should be: number operator number
     InvalidBinaryExpression,
     MissingOperand,
-    MissingOperator
+    MissingOperator,
+    UnexpectedToken,
+    InternalParserError,
+    Impossible,
 }
 
 /// Represents the result of any fallible operation in this library
 pub type Result<T> = std::result::Result<T, MexeError>;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Operator {
     Plus = PLUS as isize,
     Minus = MINUS as isize,
@@ -44,16 +47,16 @@ enum Operator {
     Div = SLASH as isize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Token {
     LPar,
     RPar,
     Number(f64),
     Op(Operator),
+    EOI, // end of input
 }
 
 fn get_tokens(expression: &str) -> Result<Vec<Token>> {
-    // dbg!(expression);
     let chars = expression.as_bytes();
     let mut tokens = Vec::with_capacity(chars.len() / 2 + 1);
 
@@ -98,14 +101,14 @@ fn get_tokens(expression: &str) -> Result<Vec<Token>> {
         if !in_number {
             match state {
                 LexerState::ReadingNumber(n) | LexerState::ReadingDecimals(n) => {
-                    let number = std::str::from_utf8(&chars[n..i])
-                        .unwrap(); // infallible
-                    let number = number.parse::<f64>()
+                    let number = std::str::from_utf8(&chars[n..i]).unwrap(); // infallible
+                    let number = number
+                        .parse::<f64>()
                         .unwrap_or_else(|_| panic!("input:|{}|", number)); // infallible
 
                     tokens.push(Token::Number(number));
-                },
-                _ => ()
+                }
+                _ => (),
             }
 
             state = LexerState::Normal;
@@ -118,17 +121,17 @@ fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 
     match state {
         LexerState::ReadingNumber(n) | LexerState::ReadingDecimals(n) => {
-            let number = std::str::from_utf8(&chars[n..])
-                .unwrap(); // infallible
-            let number = number.parse::<f64>()
+            let number = std::str::from_utf8(&chars[n..]).unwrap(); // infallible
+            let number = number
+                .parse::<f64>()
                 .unwrap_or_else(|_| panic!("input:|{}|", number)); // infallible
 
             tokens.push(Token::Number(number));
-        },
-        _ => ()
+        }
+        _ => (),
     }
 
-    // dbg!(&tokens);
+    tokens.push(Token::EOI);
     Ok(tokens)
 }
 
@@ -138,8 +141,7 @@ fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 /// multiplications, divisions and can use parentheses. Whitespace is ignored.
 pub fn eval(expression: &str) -> Result<f64> {
     let mut tokens = get_tokens(expression)?;
-
-    unimplemented!();
+    parse_and_evaluate(tokens)
 }
 
 /// Evaluates a numeric expression assuming it is just one operation between
@@ -147,18 +149,18 @@ pub fn eval(expression: &str) -> Result<f64> {
 pub fn eval_binary(expression: &str) -> Result<f64> {
     let mut tokens = get_tokens(expression)?;
 
-    if tokens.len() != 3 {
+    if tokens.len() != 4 || tokens[3] != Token::EOI {
         return Err(MexeError::InvalidBinaryExpression);
     }
 
     let lhs = match tokens.get(0).unwrap() {
         Token::Number(n) => n,
-        _ => return Err(MexeError::MissingOperand)
+        _ => return Err(MexeError::MissingOperand),
     };
 
     let rhs = match tokens.get(2).unwrap() {
         Token::Number(n) => n,
-        _ => return Err(MexeError::MissingOperand)
+        _ => return Err(MexeError::MissingOperand),
     };
 
     match tokens.get(1).unwrap() {
@@ -166,7 +168,107 @@ pub fn eval_binary(expression: &str) -> Result<f64> {
         Token::Op(Operator::Minus) => Ok(lhs - rhs),
         Token::Op(Operator::Mul) => Ok(lhs * rhs),
         Token::Op(Operator::Div) => Ok(lhs / rhs),
-        _ => Err(MexeError::MissingOperator)
+        _ => Err(MexeError::MissingOperator),
+    }
+}
+
+// PARSER
+
+type ParserReturn = Result<(Option<f64>, usize)>;
+
+enum NonTerminal {
+    Expr,
+    AddExpr,
+    Term,
+    MulTerm,
+    Factor,
+}
+
+fn parse_and_evaluate(input: Vec<Token>) -> Result<f64> {
+    return ll_parse(NonTerminal::Expr, &input[..]).map(|val| val.0.unwrap());
+}
+
+fn ll_parse(cur: NonTerminal, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    return match cur {
+        NonTerminal::Expr => ll_parse_expr(input),
+        NonTerminal::AddExpr => ll_parse_addexpr(input),
+        NonTerminal::Term => ll_parse_term(input),
+        NonTerminal::MulTerm => ll_parse_multerm(input),
+        NonTerminal::Factor => ll_parse_factor(input),
+    };
+}
+
+fn ll_parse_expr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    return match input[0] {
+        Token::LPar | Token::Number(_) | Token::Op(Operator::Minus) => {
+            let (val, input) = ll_parse(NonTerminal::Term, input)?;
+
+            match &input[0] {
+                t @ (Token::Op(Operator::Plus) | Token::Op(Operator::Minus)) => {
+                    let (val2, input) = ll_parse(NonTerminal::AddExpr, input)?;
+
+                    match (val, val2) {
+                        (Some(v1), Some(v2)) => match t {
+                            Token::Op(Operator::Plus) => Ok((Some(v1 + v2), input)),
+                            Token::Op(Operator::Minus) => Ok((Some(v1 - v2), input)),
+                            _ => Err(MexeError::Impossible),
+                        },
+                        _ => Err(MexeError::InternalParserError),
+                    }
+                }
+                Token::RPar => Ok((Some(val.unwrap()), &input[1..])),
+                Token::EOI => Ok((Some(val.unwrap()), input)),
+                _ => Err(MexeError::UnexpectedToken),
+            }
+        }
+        _ => Err(MexeError::UnexpectedToken), // TODO: must include token
+    };
+}
+
+fn ll_parse_addexpr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    todo!()
+}
+
+fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    return match input[0] {
+        Token::LPar | Token::Number(_) | Token::Op(Operator::Minus) => {
+            let (val, input) = ll_parse(NonTerminal::Factor, input)?;
+
+            match &input[0] {
+                t @ (Token::Op(Operator::Mul) | Token::Op(Operator::Div)) => {
+                    let (val2, input) = ll_parse(NonTerminal::MulTerm, input)?;
+
+                    match (val, val2) {
+                        (Some(v1), Some(v2)) => match t {
+                            Token::Op(Operator::Mul) => Ok((Some(v1 * v2), input)),
+                            Token::Op(Operator::Div) => Ok((Some(v1 / v2), input)),
+                            _ => Err(MexeError::Impossible),
+                        },
+                        _ => Err(MexeError::InternalParserError),
+                    }
+                }
+                Token::RPar
+                | Token::Op(Operator::Plus)
+                | Token::Op(Operator::Minus) => Ok((Some(val.unwrap()), &input[1..])),
+                Token::EOI => Ok((Some(val.unwrap()), input)),
+                _ => Err(MexeError::UnexpectedToken),
+            }
+        }
+        _ => Err(MexeError::UnexpectedToken), // TODO: must include token
+    };
+}
+
+fn ll_parse_multerm(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    todo!()
+}
+
+fn ll_parse_factor(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    return match (&input[0], input.get(1)) {
+        (Token::Op(Operator::Minus), Some(Token::LPar)) => todo!(),
+        (Token::Op(Operator::Minus), Some(Token::Number(n))) => todo!(),
+        (Token::LPar, _) => todo!(),
+        (Token::Number(n), _) => Ok((Some(*n), &input[1..])),
+        _ => Err(MexeError::UnexpectedToken)
     }
 }
 
@@ -181,7 +283,7 @@ mod tests {
             "1.1+1",
             "1.1+1.2",
             "183.387+(2*2.3)",
-            "(2.3 + 1) - ((2.55 - 91381.832) / (83767.3 * 22))"
+            "(2.3 + 1) - ((2.55 - 91381.832) / (83767.3 * 22))",
         ];
 
         for expr in exprs.iter() {
@@ -191,17 +293,16 @@ mod tests {
 
     #[test]
     fn get_tokens_does_not_panic_with_bad_input() {
-        let exprs = [
-            "1+1+",
-            "1.1.1+1",
-            "1.1+1.",
-            "183.+(2*2.3)",
-            "(2.3 ++ 1)"
-        ];
+        let exprs = ["1+1+", "1.1.1+1", "1.1+1.", "183.+(2*2.3)", "(2.3 ++ 1)"];
 
         for expr in exprs.iter() {
             let tokens = get_tokens(expr);
         }
+    }
+
+    #[test]
+    fn test_eval_basic() {
+        assert_eq!(1.0, eval("1").unwrap());
     }
 
     #[test]

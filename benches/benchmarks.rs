@@ -12,14 +12,7 @@ fn bytes_sum(expr: &str) -> u16 {
 }
 
 fn bench_eval_binary(c: &mut Criterion) {
-    let expressions = [
-        "1+1",
-        "1 + 2",
-        "1-2",
-        "3.5-4",
-        "4 * 3",
-        "12.837/8.3",
-    ];
+    let expressions = ["1+1", "1 + 2", "1-2", "3.5-4", "4 * 3", "12.837/8.3"];
 
     let mut group = c.benchmark_group("bench_eval_binary");
 
