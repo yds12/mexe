@@ -33,7 +33,6 @@ pub enum MexeError {
     MissingOperator,
     UnexpectedToken,
     InternalParserError,
-    Impossible,
 }
 
 /// Represents the result of any fallible operation in this library
@@ -176,42 +175,25 @@ pub fn eval_binary(expression: &str) -> Result<f64> {
 
 type ParserReturn = Result<(Option<f64>, usize)>;
 
-enum NonTerminal {
-    Expr,
-    AddExpr,
-    Term,
-    MulTerm,
-    Factor,
-}
-
 fn parse_and_evaluate(input: Vec<Token>) -> Result<f64> {
-    return ll_parse(NonTerminal::Expr, &input[..]).map(|val| val.0.unwrap());
-}
-
-fn ll_parse(cur: NonTerminal, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    return match cur {
-        NonTerminal::Expr => ll_parse_expr(input),
-        NonTerminal::AddExpr => ll_parse_addexpr(input),
-        NonTerminal::Term => ll_parse_term(input),
-        NonTerminal::MulTerm => ll_parse_multerm(input),
-        NonTerminal::Factor => ll_parse_factor(input),
-    };
+    return ll_parse_expr(&input[..]).map(|val| val.0.unwrap());
 }
 
 fn ll_parse_expr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    dbg!(input);
     return match input[0] {
         Token::LPar | Token::Number(_) | Token::Op(Operator::Minus) => {
-            let (val, input) = ll_parse(NonTerminal::Term, input)?;
+            let (val, input) = ll_parse_term(input)?;
 
             match &input[0] {
                 t @ (Token::Op(Operator::Plus) | Token::Op(Operator::Minus)) => {
-                    let (val2, input) = ll_parse(NonTerminal::AddExpr, input)?;
+                    let (val2, input) = ll_parse_addexpr(input)?;
 
                     match (val, val2) {
                         (Some(v1), Some(v2)) => match t {
                             Token::Op(Operator::Plus) => Ok((Some(v1 + v2), input)),
                             Token::Op(Operator::Minus) => Ok((Some(v1 - v2), input)),
-                            _ => Err(MexeError::Impossible),
+                            _ => unreachable!(),
                         },
                         _ => Err(MexeError::InternalParserError),
                     }
@@ -226,30 +208,33 @@ fn ll_parse_expr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 }
 
 fn ll_parse_addexpr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    dbg!(input);
     todo!()
 }
 
 fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    dbg!(input);
     return match input[0] {
         Token::LPar | Token::Number(_) | Token::Op(Operator::Minus) => {
-            let (val, input) = ll_parse(NonTerminal::Factor, input)?;
+            let (val, input) = ll_parse_factor(input)?;
 
+            dbg!(input);
             match &input[0] {
                 t @ (Token::Op(Operator::Mul) | Token::Op(Operator::Div)) => {
-                    let (val2, input) = ll_parse(NonTerminal::MulTerm, input)?;
+                    let (val2, input) = ll_parse_multerm(input)?;
 
                     match (val, val2) {
                         (Some(v1), Some(v2)) => match t {
                             Token::Op(Operator::Mul) => Ok((Some(v1 * v2), input)),
                             Token::Op(Operator::Div) => Ok((Some(v1 / v2), input)),
-                            _ => Err(MexeError::Impossible),
+                            _ => unreachable!(),
                         },
                         _ => Err(MexeError::InternalParserError),
                     }
                 }
                 Token::RPar
                 | Token::Op(Operator::Plus)
-                | Token::Op(Operator::Minus) => Ok((Some(val.unwrap()), &input[1..])),
+                | Token::Op(Operator::Minus) => Ok((Some(val.unwrap()), input)),
                 Token::EOI => Ok((Some(val.unwrap()), input)),
                 _ => Err(MexeError::UnexpectedToken),
             }
@@ -259,14 +244,23 @@ fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 }
 
 fn ll_parse_multerm(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    dbg!(input);
     todo!()
 }
 
 fn ll_parse_factor(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    dbg!(input);
     return match (&input[0], input.get(1)) {
-        (Token::Op(Operator::Minus), Some(Token::LPar)) => todo!(),
-        (Token::Op(Operator::Minus), Some(Token::Number(n))) => todo!(),
-        (Token::LPar, _) => todo!(),
+        (Token::Op(Operator::Minus), Some(Token::LPar)) => {
+            match ll_parse_expr(&input[2..]) {
+                Ok((Some(val), input)) => Ok((Some(-val), input)),
+                err => err
+            }
+        },
+        (Token::Op(Operator::Minus), Some(Token::Number(n))) => Ok((Some(- *n), &input[2..])),
+        (Token::LPar, _) => {
+            ll_parse_expr(&input[1..])
+        },
         (Token::Number(n), _) => Ok((Some(*n), &input[1..])),
         _ => Err(MexeError::UnexpectedToken)
     }
@@ -303,6 +297,11 @@ mod tests {
     #[test]
     fn test_eval_basic() {
         assert_eq!(1.0, eval("1").unwrap());
+        assert_eq!(-1.0, eval("-1").unwrap());
+        assert_eq!(1.0, eval("(1)").unwrap());
+        assert_eq!(-1.0, eval("-(1)").unwrap());
+
+        assert_eq!(2.0, eval("1 + 1").unwrap());
     }
 
     #[test]
