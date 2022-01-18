@@ -180,77 +180,66 @@ fn parse_and_evaluate(input: Vec<Token>) -> Result<f64> {
 }
 
 fn ll_parse_expr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    dbg!(input);
-    return match input[0] {
+    match input[0] {
         Token::LPar | Token::Number(_) | Token::Op(Operator::Minus) => {
             let (val, input) = ll_parse_term(input)?;
-
-            match &input[0] {
-                t @ (Token::Op(Operator::Plus) | Token::Op(Operator::Minus)) => {
-                    let (val2, input) = ll_parse_addexpr(input)?;
-
-                    match (val, val2) {
-                        (Some(v1), Some(v2)) => match t {
-                            Token::Op(Operator::Plus) => Ok((Some(v1 + v2), input)),
-                            Token::Op(Operator::Minus) => Ok((Some(v1 - v2), input)),
-                            _ => unreachable!(),
-                        },
-                        _ => Err(MexeError::InternalParserError),
-                    }
-                }
-                Token::RPar => Ok((Some(val.unwrap()), &input[1..])),
-                Token::EOI => Ok((Some(val.unwrap()), input)),
-                _ => Err(MexeError::UnexpectedToken),
-            }
+            ll_parse_addexpr(val.unwrap(), input)
         }
         _ => Err(MexeError::UnexpectedToken), // TODO: must include token
-    };
+    }
 }
 
-fn ll_parse_addexpr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    dbg!(input);
-    todo!()
+fn ll_parse_addexpr(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    match &input[0]{
+        t @ (Token::Op(Operator::Plus) | Token::Op(Operator::Minus)) => {
+            let (val2, input) = ll_parse_term(&input[1..])?;
+
+            let val = match t {
+                Token::Op(Operator::Plus) => val + val2.unwrap(),
+                Token::Op(Operator::Minus) => val - val2.unwrap(),
+                _ => unreachable!(),
+            };
+
+            ll_parse_addexpr(val, input)
+        }
+        Token::RPar => Ok((Some(val), input)),
+        Token::Op(_) | Token::EOI => Ok((Some(val), input)),
+        _ => Err(MexeError::UnexpectedToken)
+    }
 }
 
 fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    dbg!(input);
-    return match input[0] {
+    match input[0] {
         Token::LPar | Token::Number(_) | Token::Op(Operator::Minus) => {
             let (val, input) = ll_parse_factor(input)?;
 
-            dbg!(input);
-            match &input[0] {
-                t @ (Token::Op(Operator::Mul) | Token::Op(Operator::Div)) => {
-                    let (val2, input) = ll_parse_multerm(input)?;
-
-                    match (val, val2) {
-                        (Some(v1), Some(v2)) => match t {
-                            Token::Op(Operator::Mul) => Ok((Some(v1 * v2), input)),
-                            Token::Op(Operator::Div) => Ok((Some(v1 / v2), input)),
-                            _ => unreachable!(),
-                        },
-                        _ => Err(MexeError::InternalParserError),
-                    }
-                }
-                Token::RPar
-                | Token::Op(Operator::Plus)
-                | Token::Op(Operator::Minus) => Ok((Some(val.unwrap()), input)),
-                Token::EOI => Ok((Some(val.unwrap()), input)),
-                _ => Err(MexeError::UnexpectedToken),
-            }
+            ll_parse_multerm(val.unwrap(), input)
         }
         _ => Err(MexeError::UnexpectedToken), // TODO: must include token
-    };
+    }
 }
 
-fn ll_parse_multerm(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    dbg!(input);
-    todo!()
+fn ll_parse_multerm(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    match &input[0]{
+        t @ (Token::Op(Operator::Mul) | Token::Op(Operator::Div)) => {
+            let (val2, input) = ll_parse_factor(&input[1..])?;
+
+            let val = match t {
+                Token::Op(Operator::Mul) => val * val2.unwrap(),
+                Token::Op(Operator::Div) => val / val2.unwrap(),
+                _ => unreachable!(),
+            };
+
+            ll_parse_multerm(val, input)
+        }
+        Token::RPar => Ok((Some(val), input)),
+        Token::Op(_) | Token::EOI => Ok((Some(val), input)),
+        _ => Err(MexeError::UnexpectedToken)
+    }
 }
 
 fn ll_parse_factor(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    dbg!(input);
-    return match (&input[0], input.get(1)) {
+    match (&input[0], input.get(1)) {
         (Token::Op(Operator::Minus), Some(Token::LPar)) => {
             match ll_parse_expr(&input[2..]) {
                 Ok((Some(val), input)) => Ok((Some(-val), input)),
@@ -259,7 +248,10 @@ fn ll_parse_factor(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
         },
         (Token::Op(Operator::Minus), Some(Token::Number(n))) => Ok((Some(- *n), &input[2..])),
         (Token::LPar, _) => {
-            ll_parse_expr(&input[1..])
+            match ll_parse_expr(&input[1..]) {
+                Ok((Some(val), input)) => Ok((Some(val), &input[1..])),
+                err => err
+            }
         },
         (Token::Number(n), _) => Ok((Some(*n), &input[1..])),
         _ => Err(MexeError::UnexpectedToken)
@@ -299,13 +291,23 @@ mod tests {
         assert_eq!(1.0, eval("1").unwrap());
         assert_eq!(-1.0, eval("-1").unwrap());
         assert_eq!(1.0, eval("(1)").unwrap());
+        assert_eq!(1.0, eval("((1))").unwrap());
         assert_eq!(-1.0, eval("-(1)").unwrap());
 
         assert_eq!(2.0, eval("1 + 1").unwrap());
+        assert_eq!(0.0, eval("1 - 1").unwrap());
+        assert_eq!(1.1, eval("(1+1.1) - 1").unwrap());
+        assert_eq!(1.1, eval("(1+(1.1)) - 1").unwrap());
+        assert_eq!(1.1, eval("(1+(1.1 + 0)) - 1").unwrap());
+        assert_eq!(3.0, eval("(1+(1.0 + 0) + 2) - 1").unwrap());
+
+        assert_eq!(21.0, eval("(1 + (4 * 5))").unwrap());
+        assert_eq!(10.5, eval("(1 + (4 * 5)) / 2").unwrap());
     }
 
     #[test]
     fn test_eval() {
+        assert_eq!(10.5, eval("(1 + (4 * 5)) / 2").unwrap());
         assert_eq!(18.0, eval("1 + (4 * 5) - 9 / 3").unwrap());
         assert_eq!(8.4, eval("(1 + (4 * 5)) / 2 - 3 * 0.7").unwrap());
         assert_eq!(9.9, eval("(1 + ((4 * 5) + (3))) / 2 - 3 * 0.7").unwrap());
