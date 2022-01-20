@@ -190,7 +190,7 @@ fn ll_parse_expr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 }
 
 fn ll_parse_addexpr(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    match &input[0]{
+    match &input[0] {
         t @ (Token::Op(Operator::Plus) | Token::Op(Operator::Minus)) => {
             let (val2, input) = ll_parse_term(&input[1..])?;
 
@@ -204,7 +204,7 @@ fn ll_parse_addexpr(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])
         }
         Token::RPar => Ok((Some(val), input)),
         Token::Op(_) | Token::EOI => Ok((Some(val), input)),
-        _ => Err(MexeError::UnexpectedToken)
+        _ => Err(MexeError::UnexpectedToken),
     }
 }
 
@@ -220,7 +220,7 @@ fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 }
 
 fn ll_parse_multerm(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    match &input[0]{
+    match &input[0] {
         t @ (Token::Op(Operator::Mul) | Token::Op(Operator::Div)) => {
             let (val2, input) = ll_parse_factor(&input[1..])?;
 
@@ -234,27 +234,23 @@ fn ll_parse_multerm(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])
         }
         Token::RPar => Ok((Some(val), input)),
         Token::Op(_) | Token::EOI => Ok((Some(val), input)),
-        _ => Err(MexeError::UnexpectedToken)
+        _ => Err(MexeError::UnexpectedToken),
     }
 }
 
 fn ll_parse_factor(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
     match (&input[0], input.get(1)) {
-        (Token::Op(Operator::Minus), Some(Token::LPar)) => {
-            match ll_parse_expr(&input[2..]) {
-                Ok((Some(val), input)) => Ok((Some(-val), input)),
-                err => err
-            }
+        (Token::Op(Operator::Minus), Some(Token::LPar)) => match ll_parse_expr(&input[2..]) {
+            Ok((Some(val), input)) => Ok((Some(-val), input)),
+            err => err,
         },
-        (Token::Op(Operator::Minus), Some(Token::Number(n))) => Ok((Some(- *n), &input[2..])),
-        (Token::LPar, _) => {
-            match ll_parse_expr(&input[1..]) {
-                Ok((Some(val), input)) => Ok((Some(val), &input[1..])),
-                err => err
-            }
+        (Token::Op(Operator::Minus), Some(Token::Number(n))) => Ok((Some(-*n), &input[2..])),
+        (Token::LPar, _) => match ll_parse_expr(&input[1..]) {
+            Ok((Some(val), input)) => Ok((Some(val), &input[1..])),
+            err => err,
         },
         (Token::Number(n), _) => Ok((Some(*n), &input[1..])),
-        _ => Err(MexeError::UnexpectedToken)
+        _ => Err(MexeError::UnexpectedToken),
     }
 }
 
@@ -265,7 +261,7 @@ mod tests {
     macro_rules! float_eq {
         ($op1:expr, $op2:expr) => {
             assert!(float_cmp::approx_eq!(f64, $op1, $op2));
-        }
+        };
     }
 
     #[test]
