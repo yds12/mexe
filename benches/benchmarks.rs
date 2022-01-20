@@ -1,31 +1,42 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
-fn bytes_sum(expr: &str) -> u16 {
-    let chars = expr.as_bytes();
-
-    let mut sum = 0u16;
-    for i in 0..chars.len() {
-        sum += chars[i] as u16;
-    }
-
-    sum
+macro_rules! float_eq {
+    ($op1:expr, $op2:expr) => {
+        assert!(float_cmp::approx_eq!(f64, $op1, $op2));
+    };
 }
 
-fn bench_eval_binary(c: &mut Criterion) {
-    let expressions = ["1+1", "1 + 2", "1-2", "3.5-4", "4 * 3", "12.837/8.3"];
+fn bench_eval(c: &mut Criterion) {
+    let expressions = [
+        "1 + 2",
+        "4 * 3",
+        "12.837/8.3",
+        "2 * (1.5 - 6)",
+        "(1.5 / (2 + 3 * 0.1) + 6) * 3",
+        "(2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) - 1.1",
+        "(2 * (((2 * ((1.5 / (2 + 3 * 0.1) + (2 * (((2 * (((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + (2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / ((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) * 2 + 3 * 0.1) + 6) * 3))) * 3)) / ((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) * 2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) / ((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) * 2 + 3 * 0.1) + 6) * 3))) * 3)) / ((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) * 2 + 3 * 0.1) + 6) * 3)) * (2 * (((2 * ((1.5 / (2 + 3 * 0.1) + (2 * (((2 * (((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + (2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / ((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) * 2 + 3 * 0.1) + 6) * 3))) * 3)) / ((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) * 2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) / ((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) * 2 + 3 * 0.1) + 6) * 3))) * 3)) / ((2 * (((2 * ((1.5 / (2 + 3 * 0.1) + 6) * 3)) / (2 + 3 * 0.1) + 6) * 3)) * 2 + 3 * 0.1) + 6) * 3)) - 1.1",
+    ];
 
-    let mut group = c.benchmark_group("bench_eval_binary");
+    let mut group = c.benchmark_group("bench_eval");
 
     for expr in expressions.iter() {
-        group.bench_with_input(BenchmarkId::new("eval_binary", expr), expr, |b, &expr| {
-            b.iter(|| mexe::eval_binary(expr));
+        dbg!(mexe::eval(expr));
+        dbg!(meval::eval_str(expr));
+        dbg!(fasteval::ez_eval(expr, &mut fasteval::EmptyNamespace));
+        float_eq!(mexe::eval(expr).unwrap(), meval::eval_str(expr).unwrap());
+
+        group.bench_with_input(BenchmarkId::new("mexe", expr), expr, |b, &expr| {
+            b.iter(|| mexe::eval(expr));
         });
-        group.bench_with_input(BenchmarkId::new("read_bytes", expr), expr, |b, &expr| {
-            b.iter(|| bytes_sum(expr));
+        group.bench_with_input(BenchmarkId::new("meval", expr), expr, |b, &expr| {
+            b.iter(|| meval::eval_str(expr));
+        });
+        group.bench_with_input(BenchmarkId::new("fasteval", expr), expr, |b, &expr| {
+            b.iter(|| fasteval::ez_eval(expr, &mut fasteval::EmptyNamespace));
         });
     }
     group.finish();
 }
 
-criterion_group!(benches, bench_eval_binary);
+criterion_group!(benches, bench_eval);
 criterion_main!(benches);
