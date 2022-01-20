@@ -9,6 +9,7 @@ edition = "2021"
 
 [dev-dependencies]
 criterion = "0.3"
+float-cmp = "0.9"
 
 [[bench]]
 name = "benchmarks"

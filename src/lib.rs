@@ -262,6 +262,12 @@ fn ll_parse_factor(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 mod tests {
     use super::*;
 
+    macro_rules! float_eq {
+        ($op1:expr, $op2:expr) => {
+            assert!(float_cmp::approx_eq!(f64, $op1, $op2));
+        }
+    }
+
     #[test]
     fn get_tokens_does_not_panic_with_good_input() {
         let exprs = [
@@ -287,37 +293,33 @@ mod tests {
     }
 
     #[test]
-    fn test_eval_basic() {
-        assert_eq!(1.0, eval("1").unwrap());
-        assert_eq!(-1.0, eval("-1").unwrap());
-        assert_eq!(1.0, eval("(1)").unwrap());
-        assert_eq!(1.0, eval("((1))").unwrap());
-        assert_eq!(-1.0, eval("-(1)").unwrap());
-
-        assert_eq!(2.0, eval("1 + 1").unwrap());
-        assert_eq!(0.0, eval("1 - 1").unwrap());
-        assert_eq!(1.1, eval("(1+1.1) - 1").unwrap());
-        assert_eq!(1.1, eval("(1+(1.1)) - 1").unwrap());
-        assert_eq!(1.1, eval("(1+(1.1 + 0)) - 1").unwrap());
-        assert_eq!(3.0, eval("(1+(1.0 + 0) + 2) - 1").unwrap());
-
-        assert_eq!(21.0, eval("(1 + (4 * 5))").unwrap());
-        assert_eq!(10.5, eval("(1 + (4 * 5)) / 2").unwrap());
-    }
-
-    #[test]
     fn test_eval() {
-        assert_eq!(10.5, eval("(1 + (4 * 5)) / 2").unwrap());
-        assert_eq!(18.0, eval("1 + (4 * 5) - 9 / 3").unwrap());
-        assert_eq!(8.4, eval("(1 + (4 * 5)) / 2 - 3 * 0.7").unwrap());
-        assert_eq!(9.9, eval("(1 + ((4 * 5) + (3))) / 2 - 3 * 0.7").unwrap());
+        float_eq!(1.0, eval("1").unwrap());
+        float_eq!(-1.0, eval("-1").unwrap());
+        float_eq!(1.0, eval("(1)").unwrap());
+        float_eq!(1.0, eval("((1))").unwrap());
+        float_eq!(-1.0, eval("-(1)").unwrap());
+
+        float_eq!(2.0, eval("1 + 1").unwrap());
+        float_eq!(0.0, eval("1 - 1").unwrap());
+        float_eq!(1.1, eval("(1+1.1) - 1").unwrap());
+        float_eq!(1.1, eval("(1+(1.1)) - 1").unwrap());
+        float_eq!(1.1, eval("(1+(1.1 + 0)) - 1").unwrap());
+        float_eq!(3.0, eval("(1+(1.0 + 0) + 2) - 1").unwrap());
+
+        float_eq!(21.0, eval("(1 + (4 * 5))").unwrap());
+        float_eq!(10.5, eval("(1 + (4 * 5)) / 2").unwrap());
+        float_eq!(18.0, eval("1 + (4 * 5) - 9 / 3").unwrap());
+        float_eq!(8.4, eval("(1 + (4 * 5)) / 2 - 3 * 0.7").unwrap());
+        float_eq!(9.9, eval("(1 + ((4 * 5) + (3))) / 2 - 3 * 0.7").unwrap());
+        float_eq!(0.45, eval("0.15 + 0.15 + 0.15").unwrap());
     }
 
     #[test]
     fn test_eval_binary() {
-        assert_eq!(3.0, eval_binary("1 + 2").unwrap());
-        assert_eq!(10.0, eval_binary("2*5").unwrap());
-        assert_eq!(1.1, eval_binary("5.5/5").unwrap());
-        assert_eq!(10.5, eval_binary(" 5.5  + 5 ").unwrap());
+        float_eq!(3.0, eval_binary("1 + 2").unwrap());
+        float_eq!(10.0, eval_binary("2*5").unwrap());
+        float_eq!(1.1, eval_binary("5.5/5").unwrap());
+        float_eq!(10.5, eval_binary(" 5.5  + 5 ").unwrap());
     }
 }
