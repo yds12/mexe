@@ -1,7 +1,16 @@
 [package]
+authors = ["Y. D. Santos <yds12@protonmail.com>"]
 name = "mexe"
 version = "0.0.1"
 edition = "2021"
+license-file = "LICENSE"
+description = "Simple arithmetic expression evaluator"
+homepage = "https://github.com/yds12/mexe"
+repository = "https://github.com/yds12/mexe"
+readme = "README.md"
+documentation = "https://docs.rs/mexe/latest/"
+keywords = ["arithmetic", "eval", "expression", "parse", "evaluator"]
+categories = ["development-tools", "mathematics", "parsing", "parser-implementations"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
