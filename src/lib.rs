@@ -76,7 +76,7 @@ fn get_tokens(expression: &str) -> Result<Vec<Token>> {
             PLUS => (false, Some(Token::Op(Operator::Plus))),
             MINUS => (false, Some(Token::Op(Operator::Minus))),
             SLASH => (false, Some(Token::Op(Operator::Div))),
-            num @ (N0 | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 | N9) => {
+            N0 | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 | N9 => {
                 state = match state {
                     LexerState::Normal => LexerState::ReadingNumber(i),
                     LexerState::ReadingNumber(_) | LexerState::ReadingDecimals(_) => state,
@@ -139,14 +139,14 @@ fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 /// The expression can contain integers, floats, sums, subtractions,
 /// multiplications, divisions and can use parentheses. Whitespace is ignored.
 pub fn eval(expression: &str) -> Result<f64> {
-    let mut tokens = get_tokens(expression)?;
+    let tokens = get_tokens(expression)?;
     parse_and_evaluate(tokens)
 }
 
 /// Evaluates a numeric expression assuming it is just one operation between
 /// two numbers, without parentheses. Whitespace is ignored.
 pub fn eval_binary(expression: &str) -> Result<f64> {
-    let mut tokens = get_tokens(expression)?;
+    let tokens = get_tokens(expression)?;
 
     if tokens.len() != 4 || tokens[3] != Token::EOI {
         return Err(MexeError::InvalidBinaryExpression);
@@ -172,8 +172,6 @@ pub fn eval_binary(expression: &str) -> Result<f64> {
 }
 
 // PARSER
-
-type ParserReturn = Result<(Option<f64>, usize)>;
 
 fn parse_and_evaluate(input: Vec<Token>) -> Result<f64> {
     return ll_parse_expr(&input[..]).map(|val| val.0.unwrap());
@@ -275,7 +273,7 @@ mod tests {
         ];
 
         for expr in exprs.iter() {
-            let tokens = get_tokens(expr);
+            let _tokens = get_tokens(expr);
         }
     }
 
@@ -284,7 +282,7 @@ mod tests {
         let exprs = ["1+1+", "1.1.1+1", "1.1+1.", "183.+(2*2.3)", "(2.3 ++ 1)"];
 
         for expr in exprs.iter() {
-            let tokens = get_tokens(expr);
+            let _tokens = get_tokens(expr);
         }
     }
 
