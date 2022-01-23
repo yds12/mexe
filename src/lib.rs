@@ -33,6 +33,7 @@ pub enum MexeError {
     MissingOperator,
     UnexpectedToken,
     InternalParserError,
+    UnexpectEndOfInput,
 }
 
 /// Represents the result of any fallible operation in this library
@@ -218,6 +219,9 @@ fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 }
 
 fn ll_parse_multerm(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
+    if input.is_empty() {
+        return Err(MexeError::UnexpectEndOfInput);
+    }
     match &input[0] {
         t @ (Token::Op(Operator::Mul) | Token::Op(Operator::Div)) => {
             let (val2, input) = ll_parse_factor(&input[1..])?;
@@ -283,6 +287,23 @@ mod tests {
 
         for expr in exprs.iter() {
             let _tokens = get_tokens(expr);
+        }
+    }
+
+    #[test]
+    fn eval_does_not_panic_with_empty_input() {
+        let _val = eval("");
+
+        let empty: &[u8] = &[];
+        let _val = eval(std::str::from_utf8(empty).unwrap());
+    }
+
+    #[test]
+    fn eval_does_not_panic_with_bad_input() {
+        let exprs = ["(1"];
+
+        for expr in exprs.iter() {
+            let _val = eval(expr);
         }
     }
 
