@@ -1,3 +1,5 @@
+![tests](https://github.com/yds12/mexe/actions/workflows/unit.yml/badge.svg)
+
 **m**athematical **ex**pression **e**valuator.
 
 ## How to Use
@@ -71,4 +73,5 @@ Our first (non-optimised) implementation will use an LL(1) parser.
 
 * Documentation: [docs.rs](https://docs.rs/mexe/latest)
 * Crate: [crates.io](https://crates.io/crates/mexe)
+* Repository: [Github](https://github.com/yds12/mexe)
 
