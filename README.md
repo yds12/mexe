@@ -10,17 +10,24 @@
         let forty_six = eval("(5 * 8) + 6").unwrap();
         let two = eval("1 + 1").unwrap();
         println!("{} & {}", forty_six, two);
+
+        assert_eq!(forty_six, 46.0);
+        assert_eq!(two, 2.0);
     }
+
+Note: the above `assert_eq`s work, but for float comparison in general use a
+crate such as `float-cmp`.
 
 ## Why?
 
 If you need to evaluate simple arithmetic expressions, this crate offers a fast
 and lightweight solution.
 
-It's about 4-10x faster than `meval` and about 2x faster than `fasteval`, but
-there are still optimisations to come, which will make it even faster. Note that
-those crates do much more than `mexe`. Our focus on a very small problem makes
-it easier for us to ship a fast and lean library.
+In our [current benchmarks](https://github.com/yds12/mexe/actions/workflows/bench.yml),
+it's about 4-10x faster than `meval` and about 2x
+faster than `fasteval`, but there are still optimisations to come, which will
+make it even faster. Note that those crates do much more than `mexe`. Our focus
+on a very small problem makes it easier for us to ship a fast and lean library.
 
 ## Includes
 
@@ -41,12 +48,25 @@ it easier for us to ship a fast and lean library.
 - We can assume the input is ASCII, and throw an error otherwise
 - Thoroughly tested
 - Maybe try to make it no-std
-- Having fun
+
+## Run Tests and Benchmarks
+
+Unit tests:
+
+    cargo test
+
+Benchmarks:
+
+    cargo bench -- bench_cmp   # comparison with other crates
+    cargo bench -- bench_mexe  # only mexe
+
+Fuzz tests have been ran with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz).
 
 ## Similar Projects
 
+- [meval](https://crates.io/crates/meval)
+- [fasteval](https://crates.io/crates/fasteval)
 - [pmalmgren/rust-calculator](https://github.com/pmalmgren/rust-calculator)
-- [rekka/meval-rs](https://github.com/rekka/meval-rs)
 - [adriaN/simple_rust_parser](https://github.com/adrianN/simple_rust_parser)
 
 ## Grammar

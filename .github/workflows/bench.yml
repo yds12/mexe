@@ -10,9 +10,9 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  benchmarks:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Run benchmarks
-      run: cargo bench
+      run: cargo bench -- bench_cmp
