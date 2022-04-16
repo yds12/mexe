@@ -139,15 +139,25 @@ fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 ///
 /// The expression can contain integers, floats, sums, subtractions,
 /// multiplications, divisions and can use parentheses. Whitespace is ignored.
-pub fn eval(expression: &str) -> Result<f64> {
-    let tokens = get_tokens(expression)?;
+///
+/// `T`: type of the expression. Usually a `&str` or a `String`.
+pub fn eval<T>(expression: T) -> Result<f64>
+where
+    T: AsRef<str>,
+{
+    let tokens = get_tokens(expression.as_ref())?;
     parse_and_evaluate(tokens)
 }
 
 /// Evaluates a numeric expression assuming it is just one operation between
 /// two numbers, without parentheses. Whitespace is ignored.
-pub fn eval_binary(expression: &str) -> Result<f64> {
-    let tokens = get_tokens(expression)?;
+///
+/// `T`: type of the expression. Usually a `&str` or a `String`.
+pub fn eval_binary<T>(expression: T) -> Result<f64>
+where
+    T: AsRef<str>,
+{
+    let tokens = get_tokens(expression.as_ref())?;
 
     if tokens.len() != 4 || tokens[3] != Token::EOI {
         return Err(MexeError::InvalidBinaryExpression);

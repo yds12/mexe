@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, black_box};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
 macro_rules! float_eq {
     ($op1:expr, $op2:expr) => {
@@ -37,15 +37,27 @@ fn bench_cmp(c: &mut Criterion) {
         dbg!(fasteval::ez_eval(expr, &mut fasteval::EmptyNamespace));
         float_eq!(mexe::eval(expr).unwrap(), meval::eval_str(expr).unwrap());
 
-        group.bench_with_input(BenchmarkId::new("bench_cmp mexe", expr), expr, |b, &expr| {
-            b.iter(|| mexe::eval(expr));
-        });
-        group.bench_with_input(BenchmarkId::new("bench_cmp meval", expr), expr, |b, &expr| {
-            b.iter(|| meval::eval_str(expr));
-        });
-        group.bench_with_input(BenchmarkId::new("bench_cmp fasteval", expr), expr, |b, &expr| {
-            b.iter(|| fasteval::ez_eval(expr, &mut fasteval::EmptyNamespace));
-        });
+        group.bench_with_input(
+            BenchmarkId::new("bench_cmp mexe", expr),
+            expr,
+            |b, &expr| {
+                b.iter(|| mexe::eval(expr));
+            },
+        );
+        group.bench_with_input(
+            BenchmarkId::new("bench_cmp meval", expr),
+            expr,
+            |b, &expr| {
+                b.iter(|| meval::eval_str(expr));
+            },
+        );
+        group.bench_with_input(
+            BenchmarkId::new("bench_cmp fasteval", expr),
+            expr,
+            |b, &expr| {
+                b.iter(|| fasteval::ez_eval(expr, &mut fasteval::EmptyNamespace));
+            },
+        );
     }
     group.finish();
 }
