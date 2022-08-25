@@ -90,7 +90,7 @@ const N8: u8 = 56;
 const N9: u8 = 57;
 
 /// Represents any errors that may occur in this library
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum MexeError {
     /// Invalid character at the specified index
     InvalidCharacter(usize),
@@ -102,7 +102,8 @@ pub enum MexeError {
     InvalidBinaryExpression,
     MissingOperand,
     MissingOperator,
-    UnexpectedToken,
+    /// Unexpected token
+    UnexpectedToken(String),
     InternalParserError,
     UnexpectEndOfInput,
 }
@@ -119,7 +120,7 @@ impl std::fmt::Display for MexeError {
             MexeError::InvalidBinaryExpression => write!(f, "Invalid binary expression"),
             MexeError::MissingOperand => write!(f, "Missing operand"),
             MexeError::MissingOperator => write!(f, "Missing operator"),
-            MexeError::UnexpectedToken => write!(f, "Unexpected token"),
+            MexeError::UnexpectedToken(token) => write!(f, "Unexpected token: `{}`", token),
             MexeError::InternalParserError => write!(f, "Internal parser error"),
             MexeError::UnexpectEndOfInput => write!(f, "Unexpected end of input"),
         }
@@ -129,7 +130,7 @@ impl std::fmt::Display for MexeError {
 /// Represents the result of any fallible operation in this library
 pub type Result<T> = std::result::Result<T, MexeError>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Operator {
     Plus = PLUS as isize,
     Minus = MINUS as isize,
@@ -137,13 +138,36 @@ enum Operator {
     Div = SLASH as isize,
 }
 
-#[derive(Debug, PartialEq)]
+impl std::fmt::Display for Operator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        match self {
+            Operator::Plus => write!(f, "+"),
+            Operator::Minus => write!(f, "-"),
+            Operator::Mul => write!(f, "*"),
+            Operator::Div => write!(f, "/"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Token {
     LPar,
     RPar,
     Number(f64),
     Op(Operator),
     EOI, // end of input
+}
+
+impl std::fmt::Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        match self {
+            Token::LPar => write!(f, "("),
+            Token::RPar => write!(f, ")"),
+            Token::Number(n) => write!(f, "{}", n),
+            Token::Op(op) => write!(f, "{}", op),
+            Token::EOI => write!(f, "EOI"),
+        }
+    }
 }
 
 fn get_tokens(expression: &str) -> Result<Vec<Token>> {
@@ -308,7 +332,7 @@ fn ll_parse_expr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
             let (val, input) = ll_parse_term(input)?;
             ll_parse_addexpr(val.unwrap(), input)
         }
-        _ => Err(MexeError::UnexpectedToken), // TODO: must include token
+        token => Err(MexeError::UnexpectedToken(token.to_string())),
     }
 }
 
@@ -327,7 +351,7 @@ fn ll_parse_addexpr(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])
         }
         Token::RPar => Ok((Some(val), input)),
         Token::Op(_) | Token::EOI => Ok((Some(val), input)),
-        _ => Err(MexeError::UnexpectedToken),
+        token => Err(MexeError::UnexpectedToken(token.to_string())),
     }
 }
 
@@ -338,7 +362,7 @@ fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 
             ll_parse_multerm(val.unwrap(), input)
         }
-        _ => Err(MexeError::UnexpectedToken), // TODO: must include token
+        token => Err(MexeError::UnexpectedToken(token.to_string())),
     }
 }
 
@@ -360,7 +384,7 @@ fn ll_parse_multerm(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])
         }
         Token::RPar => Ok((Some(val), input)),
         Token::Op(_) | Token::EOI => Ok((Some(val), input)),
-        _ => Err(MexeError::UnexpectedToken),
+        token => Err(MexeError::UnexpectedToken(token.to_string())),
     }
 }
 
@@ -376,7 +400,7 @@ fn ll_parse_factor(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
             err => err,
         },
         (Token::Number(n), _) => Ok((Some(*n), &input[1..])),
-        _ => Err(MexeError::UnexpectedToken),
+        (token, _) => Err(MexeError::UnexpectedToken(token.to_string())),
     }
 }
 
@@ -460,5 +484,10 @@ mod tests {
         float_eq!(10.0, eval_binary("2*5").unwrap());
         float_eq!(1.1, eval_binary("5.5/5").unwrap());
         float_eq!(10.5, eval_binary(" 5.5  + 5 ").unwrap());
+    }
+
+    #[test]
+    fn correct_errors_are_returned() {
+        assert_eq!(eval("1++"), Err(MexeError::UnexpectedToken("+".to_owned())));
     }
 }
