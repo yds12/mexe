@@ -469,6 +469,7 @@ mod tests {
         float_eq!(1.1, eval("(1+(1.1)) - 1").unwrap());
         float_eq!(1.1, eval("(1+(1.1 + 0)) - 1").unwrap());
         float_eq!(3.0, eval("(1+(1.0 + 0) + 2) - 1").unwrap());
+        float_eq!(2.0, eval("(((1))) + ((((1))))").unwrap());
 
         float_eq!(21.0, eval("(1 + (4 * 5))").unwrap());
         float_eq!(10.5, eval("(1 + (4 * 5)) / 2").unwrap());
@@ -476,6 +477,22 @@ mod tests {
         float_eq!(8.4, eval("(1 + (4 * 5)) / 2 - 3 * 0.7").unwrap());
         float_eq!(9.9, eval("(1 + ((4 * 5) + (3))) / 2 - 3 * 0.7").unwrap());
         float_eq!(0.45, eval("0.15 + 0.15 + 0.15").unwrap());
+    }
+
+    #[test]
+    fn test_eval_failures() {
+        let exprs = [
+            "(((1",
+            "((1",
+            "(1",
+            "1)))",
+            "1))",
+            "1)"
+        ];
+
+        for expr in exprs.iter() {
+            eval(expr).unwrap_err();
+        }
     }
 
     #[test]
