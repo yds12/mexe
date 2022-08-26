@@ -1,17 +1,18 @@
+//! ![tests](https://github.com/yds12/mexe/actions/workflows/unit.yml/badge.svg)
+//!
 //! **m**athematical **ex**pression **e**valuator.
 //!
 //! ## How to Use
 //!
-//!     use mexe::{eval, Result};
+//!     use mexe::eval;
 //!
-//!     fn main() -> Result<()> {
-//!         let forty_six = eval("(5 * 8) + 6")?;
-//!         let two = eval("1 + 1")?;
+//!     fn main() {
+//!         let forty_six = eval("(5 * 8) + 6").unwrap();
+//!         let two = eval("1 + 1").unwrap();
 //!         println!("{} & {}", forty_six, two);
 //!
 //!         assert_eq!(forty_six, 46.0);
 //!         assert_eq!(two, 2.0);
-//!         Ok(())
 //!     }
 //!
 //! Note: the above `assert_eq`s work, but for float comparison in general use a
@@ -24,8 +25,7 @@
 //!
 //! In our [current benchmarks](https://github.com/yds12/mexe/actions/workflows/bench.yml),
 //! it's about 4-10x faster than `meval` and about 2x
-//! faster than `fasteval`, but there are still optimisations to come, which will
-//! make it even faster. Note that those crates do much more than `mexe`. Our focus
+//! faster than `fasteval`. Note that those crates do much more than `mexe`. Our focus
 //! on a very small problem makes it easier for us to ship a fast and lean library.
 //!
 //! ## Includes
@@ -48,20 +48,20 @@
 //! - Thoroughly tested
 //! - Maybe try to make it no-std
 //!
-//! ## Similar Projects
-//!
-//! - [meval](https://crates.io/crates/meval)
-//! - [fasteval](https://crates.io/crates/fasteval)
-//! - [pmalmgren/rust-calculator](https://github.com/pmalmgren/rust-calculator)
-//! - [adriaN/simple_rust_parser](https://github.com/adrianN/simple_rust_parser)
-//!
 //! ## Grammar
 //!
 //! See readme.
 //!
 //! Grammar idea adapted from [this post](https://stackoverflow.com/a/23845375).
 //!
-//! Our first (non-optimised) implementation will use an LL(1) parser.
+//! Our first implementation uses an LL(1) parser.
+//!
+//! ## Similar Projects
+//!
+//! - [meval](https://crates.io/crates/meval)
+//! - [fasteval](https://crates.io/crates/fasteval)
+//! - [pmalmgren/rust-calculator](https://github.com/pmalmgren/rust-calculator)
+//! - [adriaN/simple_rust_parser](https://github.com/adrianN/simple_rust_parser)
 //!
 //! ## Links
 //!
@@ -326,18 +326,20 @@ fn parse_and_evaluate(input: Vec<Token>) -> Result<f64> {
     match ll_parse_expr(&input[..]) {
         Ok((Some(val), input)) => {
             if !is_over(input) {
+                // finished parsing but there's something left
                 Err(MexeError::UnexpectedToken(input[0].to_string()))
             } else {
                 Ok(val)
             }
         }
+        // if value is `None` the parse should have failed earlier (should never happen)
+        Ok((None, _)) => Err(MexeError::InternalParserError),
         Err(err) => Err(err),
-        _ => Err(MexeError::InternalParserError),
     }
 }
 
 fn is_over(input: &[Token]) -> bool {
-    input.is_empty() || (input.len() == 1 && input[0] == Token::EOI)
+    input.len() == 1 && input[0] == Token::EOI
 }
 
 // E  -> T E'
@@ -367,7 +369,6 @@ fn ll_parse_addexpr(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])
 
             ll_parse_addexpr(val, input)
         }
-        //Token::Op(_) | Token::EOI => Ok((Some(val), input)),
         _ => Ok((Some(val), input)),
     }
 }
@@ -388,9 +389,6 @@ fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 // T' -> / F T'
 // T' -> ε
 fn ll_parse_multerm(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
-    if input.is_empty() {
-        return Ok((Some(val), input)); //Err(MexeError::UnexpectEndOfInput);
-    }
     match &input[0] {
         t @ (Token::Op(Operator::Mul) | Token::Op(Operator::Div)) => {
             let (val2, input) = ll_parse_factor(&input[1..])?;
@@ -403,8 +401,6 @@ fn ll_parse_multerm(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])
 
             ll_parse_multerm(val, input)
         }
-        // Token::RPar => Ok((Some(val), input)),
-        // Token::Op(_) | Token::EOI => Ok((Some(val), input)),
         _ => Ok((Some(val), input)),
     }
 }
@@ -464,7 +460,7 @@ mod tests {
 
     #[test]
     fn get_tokens_does_not_panic_with_bad_input() {
-        let exprs = ["1+1+", "1.1.1+1", "1.1+1.", "183.+(2*2.3)", "(2.3 ++ 1)"];
+        let exprs = ["", "1+1+", "1.1.1+1", "1.1+1.", "183.+(2*2.3)", "(2.3 ++ 1)"];
 
         for expr in exprs.iter() {
             let _tokens = get_tokens(expr);

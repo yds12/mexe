@@ -25,8 +25,7 @@ and lightweight solution.
 
 In our [current benchmarks](https://github.com/yds12/mexe/actions/workflows/bench.yml),
 it's about 4-10x faster than `meval` and about 2x
-faster than `fasteval`, but there are still optimisations to come, which will
-make it even faster. Note that those crates do much more than `mexe`. Our focus
+faster than `fasteval`. Note that those crates do much more than `mexe`. Our focus
 on a very small problem makes it easier for us to ship a fast and lean library.
 
 ## Includes
@@ -60,14 +59,35 @@ Benchmarks:
     cargo bench -- bench_cmp   # comparison with other crates
     cargo bench -- bench_mexe  # only mexe
 
+### Running the fuzzer
+
 Fuzz tests have been ran with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz).
 
-## Similar Projects
+To run it yourself, you need to install the nightly toolchain
+(`rustup toolchain install nightly`) and the tool itself:
+`cargo install cargo-fuzz` (check for more detailed instructions and
+dependencies in the project's readme).
 
-- [meval](https://crates.io/crates/meval)
-- [fasteval](https://crates.io/crates/fasteval)
-- [pmalmgren/rust-calculator](https://github.com/pmalmgren/rust-calculator)
-- [adriaN/simple_rust_parser](https://github.com/adrianN/simple_rust_parser)
+After that run:
+
+    cargo fuzz init
+    cargo fuzz add fn_eval
+
+Go to `fuzz/fuzz_targets/fn_eval.rs` and paste this code:
+
+    #![no_main]
+    use libfuzzer_sys::fuzz_target;
+
+    fuzz_target!(|data: &[u8]| {
+        // fuzzed code goes here
+        if let Ok(text) = std::str::from_utf8(data) {
+            let _ = mexe::eval(text);
+        }
+    });
+
+Now finally run:
+
+    cargo +nightly fuzz run fn_eval
 
 ## Grammar
 
@@ -87,7 +107,14 @@ Fuzz tests have been ran with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fu
 where `ε` is the empty string and `n` is a terminal number token. Grammar idea
 adapted from [this post](https://stackoverflow.com/a/23845375).
 
-Our first (non-optimised) implementation will use an LL(1) parser.
+Our first implementation uses an LL(1) parser.
+
+## Similar Projects
+
+- [meval](https://crates.io/crates/meval)
+- [fasteval](https://crates.io/crates/fasteval)
+- [pmalmgren/rust-calculator](https://github.com/pmalmgren/rust-calculator)
+- [adriaN/simple_rust_parser](https://github.com/adrianN/simple_rust_parser)
 
 ## Links
 
