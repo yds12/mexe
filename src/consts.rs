@@ -1,0 +1,19 @@
+// ASCII character codes
+pub const SPACE: u8 = 32;
+pub const LPAR: u8 = 40;
+pub const RPAR: u8 = 41;
+pub const ASTERISK: u8 = 42;
+pub const PLUS: u8 = 43;
+pub const MINUS: u8 = 45;
+pub const PERIOD: u8 = 46;
+pub const SLASH: u8 = 47;
+pub const N0: u8 = 48;
+pub const N1: u8 = 49;
+pub const N2: u8 = 50;
+pub const N3: u8 = 51;
+pub const N4: u8 = 52;
+pub const N5: u8 = 53;
+pub const N6: u8 = 54;
+pub const N7: u8 = 55;
+pub const N8: u8 = 56;
+pub const N9: u8 = 57;
