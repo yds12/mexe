@@ -1,4 +1,4 @@
-use crate::{MexeError, Operator, Result, Token, consts::* };
+use crate::{consts::*, MexeError, Operator, Result, Token};
 
 enum LexerState {
     Normal,
@@ -99,7 +99,14 @@ mod tests {
 
     #[test]
     fn does_not_panic_with_bad_input() {
-        let exprs = ["", "1+1+", "1.1.1+1", "1.1+1.", "183.+(2*2.3)", "(2.3 ++ 1)"];
+        let exprs = [
+            "",
+            "1+1+",
+            "1.1.1+1",
+            "1.1+1.",
+            "183.+(2*2.3)",
+            "(2.3 ++ 1)",
+        ];
 
         for expr in exprs.iter() {
             let _tokens = get_tokens(expr);
