@@ -8,7 +8,7 @@ enum LexerState {
 
 pub(crate) fn get_tokens(expression: &str) -> Result<Vec<Token>> {
     let chars = expression.as_bytes();
-    let mut tokens = Vec::with_capacity(chars.len() / 2 + 1);
+    let mut tokens = Vec::with_capacity(chars.len() / 2 + 2); // heuristic
     let mut state = LexerState::Normal;
 
     for i in 0..chars.len() {
