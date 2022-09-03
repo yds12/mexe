@@ -111,6 +111,7 @@ Our first implementation uses an LL(1) parser.
 
 ## Similar Projects
 
+- [evalexpr](https://crates.io/crates/evalexpr)
 - [meval](https://crates.io/crates/meval)
 - [fasteval](https://crates.io/crates/fasteval)
 - [pmalmgren/rust-calculator](https://github.com/pmalmgren/rust-calculator)

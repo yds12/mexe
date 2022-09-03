@@ -45,6 +45,7 @@ fn bench_cmp(c: &mut Criterion) {
         dbg!(mexe::eval(expr));
         dbg!(meval::eval_str(expr));
         dbg!(fasteval::ez_eval(expr, &mut fasteval::EmptyNamespace));
+        dbg!(evalexpr::eval(expr));
         float_eq!(mexe::eval(expr).unwrap(), meval::eval_str(expr).unwrap());
 
         group.bench_with_input(
@@ -55,6 +56,13 @@ fn bench_cmp(c: &mut Criterion) {
             },
         );
         group.bench_with_input(
+            BenchmarkId::new("bench_cmp fasteval", expr),
+            expr,
+            |b, &expr| {
+                b.iter(|| fasteval::ez_eval(expr, &mut fasteval::EmptyNamespace));
+            },
+        );
+        group.bench_with_input(
             BenchmarkId::new("bench_cmp meval", expr),
             expr,
             |b, &expr| {
@@ -62,10 +70,10 @@ fn bench_cmp(c: &mut Criterion) {
             },
         );
         group.bench_with_input(
-            BenchmarkId::new("bench_cmp fasteval", expr),
+            BenchmarkId::new("bench_cmp evalexpr", expr),
             expr,
             |b, &expr| {
-                b.iter(|| fasteval::ez_eval(expr, &mut fasteval::EmptyNamespace));
+                b.iter(|| evalexpr::eval(expr));
             },
         );
     }

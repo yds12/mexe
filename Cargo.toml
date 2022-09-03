@@ -17,6 +17,7 @@ criterion = "0.3"
 float-cmp = "0.9"
 meval = "0.2"
 fasteval = "0.2"
+evalexpr = "8.1"
 
 [[bench]]
 name = "benchmarks"
