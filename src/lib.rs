@@ -66,7 +66,7 @@
 //! ## Links
 //!
 //! * Documentation: [docs.rs](https://docs.rs/mexe/latest)
-//! * Crate: [crates.io](https://crates.io/crates/mexe)
+//! * Crate: [crates.io](https://crates.io/crates/mexe) and [lib.rs](https://lib.rs/crates/mexe)
 //! * Repository: [Github](https://github.com/yds12/mexe)
 
 mod consts;
