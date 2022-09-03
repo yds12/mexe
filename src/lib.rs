@@ -83,6 +83,9 @@ use types::{Operator, Token};
 ///
 /// The expression can contain integers, floats, sums, subtractions,
 /// multiplications, divisions and can use parentheses. Whitespace is ignored.
+/// Floating point numbers must be represented in the `X.Y` form, where `X` and
+/// `Y` are non-empty sequence of digits. The notation with the exponent is not
+/// currently supported.
 ///
 /// `T`: type of the expression. Usually a `&str` or a `String`.
 ///
@@ -107,6 +110,9 @@ where
 
 /// Evaluates a numeric expression assuming it is just one operation between
 /// two numbers, without parentheses. Whitespace is ignored.
+/// Floating point numbers must be represented in the `X.Y` form, where `X` and
+/// `Y` are non-empty sequence of digits. The notation with the exponent is not
+/// currently supported.
 ///
 /// `T`: type of the expression. Usually a `&str` or a `String`.
 ///
