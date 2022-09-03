@@ -24,9 +24,10 @@ If you need to evaluate simple arithmetic expressions, this crate offers a fast
 and lightweight solution.
 
 In our [current benchmarks](https://github.com/yds12/mexe/actions/workflows/bench.yml),
-it's about 4-10x faster than `meval` and about 2x
-faster than `fasteval`. Note that those crates do much more than `mexe`. Our focus
-on a very small problem makes it easier for us to ship a fast and lean library.
+it's about 4-10x faster than `meval`, about 2x faster than `fasteval`, and
+the fully-featured `evalexpr` is generally the slowest. Note that those crates
+do much more than `mexe` -- especially `evalexpr`. Our focus on a very small
+problem makes it easier for us to ship a fast and lean library.
 
 ## Includes
 
