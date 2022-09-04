@@ -40,20 +40,30 @@ problem makes it easier for us to ship a fast and lean library.
 - parentheses
 - arbitrary whitespace
 
+Floats are represented as `X.Y` where `X` and `Y` are non-empty sequences of
+digits. The notation with exponents for floats or omitting either side of the
+point is not accepted.
+
 ## Goals
 
 - Minimal
 - Fast: O(n)
-- No allocations if possible
-- We can assume the input is ASCII, and throw an error otherwise
+- No dependencies
+- Minimal allocations
 - Thoroughly tested
-- Maybe try to make it no-std
 
 ## Run Tests and Benchmarks
 
-Unit tests:
+Unit tests and integration tests:
 
     cargo test
+
+We leverage the [`glc` crate](https://crates.io/crates/glc) to generate valid
+random inputs for `mexe`. The command below will run an ignored integration test
+that runs indefinitely and shows the output in the terminal until you stop it
+with `CTRL+C`:
+
+    cargo test --test integration without_bounds -- --nocapture --ignored
 
 Benchmarks:
 
