@@ -1,8 +1,8 @@
-use glc::{Grammar, Expression, nt, nt_seq_rule, t_or_rule};
+use glc::{Grammar, Expression, nt_seq_rule, t_or_rule};
 
 fn grammar() -> Grammar {
     Grammar(
-        nt!("E"),
+        "E".into(),
         vec![
             nt_seq_rule!("E" => "T", "E'"),
             nt_seq_rule!("E'" => "PM", "T", "E'"),
