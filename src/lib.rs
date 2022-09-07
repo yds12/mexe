@@ -128,6 +128,7 @@ where
 ///
 /// This function will return a [`MexeError`] if the input is not a valid
 /// binary arithmetic expression.
+#[deprecated(since="0.2.0", note="please use `eval` instead")]
 pub fn eval_binary<T>(expression: T) -> Result<f64>
 where
     T: AsRef<str>,
@@ -217,14 +218,6 @@ mod tests {
                 panic!("{} should not be parsed", expr);
             }
         }
-    }
-
-    #[test]
-    fn test_eval_binary() {
-        float_eq!(3.0, eval_binary("1 + 2").unwrap());
-        float_eq!(10.0, eval_binary("2*5").unwrap());
-        float_eq!(1.1, eval_binary("5.5/5").unwrap());
-        float_eq!(10.5, eval_binary(" 5.5  + 5 ").unwrap());
     }
 
     #[test]
