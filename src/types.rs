@@ -2,8 +2,8 @@ use crate::consts::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Operator {
-    Plus = PLUS as isize,
-    Minus = MINUS as isize,
+    Add = PLUS as isize,
+    Sub = MINUS as isize,
     Mul = ASTERISK as isize,
     Div = SLASH as isize,
 }
@@ -11,8 +11,8 @@ pub(crate) enum Operator {
 impl std::fmt::Display for Operator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
         match self {
-            Operator::Plus => write!(f, "+"),
-            Operator::Minus => write!(f, "-"),
+            Operator::Add => write!(f, "+"),
+            Operator::Sub => write!(f, "-"),
             Operator::Mul => write!(f, "*"),
             Operator::Div => write!(f, "/"),
         }

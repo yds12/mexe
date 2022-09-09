@@ -150,8 +150,8 @@ where
     };
 
     match tokens.get(1).unwrap() {
-        Token::Op(Operator::Plus) => Ok(lhs + rhs),
-        Token::Op(Operator::Minus) => Ok(lhs - rhs),
+        Token::Op(Operator::Add) => Ok(lhs + rhs),
+        Token::Op(Operator::Sub) => Ok(lhs - rhs),
         Token::Op(Operator::Mul) => Ok(lhs * rhs),
         Token::Op(Operator::Div) => Ok(lhs / rhs),
         _ => Err(MexeError::MissingOperator),

@@ -17,8 +17,8 @@ pub(crate) fn get_tokens(expression: &str) -> Result<Vec<Token>> {
             LPAR => (false, Some(Token::LPar)),
             RPAR => (false, Some(Token::RPar)),
             ASTERISK => (false, Some(Token::Op(Operator::Mul))),
-            PLUS => (false, Some(Token::Op(Operator::Plus))),
-            MINUS => (false, Some(Token::Op(Operator::Minus))),
+            PLUS => (false, Some(Token::Op(Operator::Add))),
+            MINUS => (false, Some(Token::Op(Operator::Sub))),
             SLASH => (false, Some(Token::Op(Operator::Div))),
             N0 | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 | N9 => {
                 state = match state {

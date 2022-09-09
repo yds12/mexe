@@ -23,7 +23,7 @@ fn is_over(input: &[Token]) -> bool {
 // E  -> T E'
 fn ll_parse_expr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
     match input[0] {
-        Token::LPar | Token::Number(_) | Token::Op(Operator::Minus) => {
+        Token::LPar | Token::Number(_) | Token::Op(Operator::Sub) => {
             let (val, input) = ll_parse_term(input)?;
             ll_parse_addexpr(val.unwrap(), input)
         }
@@ -36,12 +36,12 @@ fn ll_parse_expr(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
 // E' -> ε
 fn ll_parse_addexpr(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])> {
     match &input[0] {
-        t @ (Token::Op(Operator::Plus) | Token::Op(Operator::Minus)) => {
+        t @ (Token::Op(Operator::Add) | Token::Op(Operator::Sub)) => {
             let (val2, input) = ll_parse_term(&input[1..])?;
 
             let val = match t {
-                Token::Op(Operator::Plus) => val + val2.unwrap(),
-                Token::Op(Operator::Minus) => val - val2.unwrap(),
+                Token::Op(Operator::Add) => val + val2.unwrap(),
+                Token::Op(Operator::Sub) => val - val2.unwrap(),
                 _ => unreachable!(),
             };
 
@@ -54,7 +54,7 @@ fn ll_parse_addexpr(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])
 // T  -> F T'
 fn ll_parse_term(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
     match input[0] {
-        Token::LPar | Token::Number(_) | Token::Op(Operator::Minus) => {
+        Token::LPar | Token::Number(_) | Token::Op(Operator::Sub) => {
             let (val, input) = ll_parse_factor(input)?;
 
             ll_parse_multerm(val.unwrap(), input)
@@ -89,11 +89,11 @@ fn ll_parse_multerm(val: f64, input: &[Token]) -> Result<(Option<f64>, &[Token])
 // F  -> - n
 fn ll_parse_factor(input: &[Token]) -> Result<(Option<f64>, &[Token])> {
     match (&input[0], input.get(1)) {
-        (Token::Op(Operator::Minus), Some(Token::LPar)) => match ll_parse_expr(&input[2..]) {
+        (Token::Op(Operator::Sub), Some(Token::LPar)) => match ll_parse_expr(&input[2..]) {
             Ok((Some(val), input)) => ll_consume_rpar(-val, input),
             err => err,
         },
-        (Token::Op(Operator::Minus), Some(Token::Number(n))) => Ok((Some(-*n), &input[2..])),
+        (Token::Op(Operator::Sub), Some(Token::Number(n))) => Ok((Some(-*n), &input[2..])),
         (Token::LPar, _) => match ll_parse_expr(&input[1..]) {
             Ok((Some(val), input)) => ll_consume_rpar(val, input),
             err => err,
