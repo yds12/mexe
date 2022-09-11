@@ -1,4 +1,4 @@
-use glc::{Grammar, Expression, nt_seq_rule, t_or_rule};
+use glc::{nt_seq_rule, t_or_rule, Expression, Grammar};
 
 fn grammar() -> Grammar {
     Grammar(
@@ -23,7 +23,6 @@ fn grammar() -> Grammar {
             t_or_rule!("LP" => "("),
             t_or_rule!("RP" => ")"),
             t_or_rule!("M" => "-"),
-
             nt_seq_rule!("N" => "D", "DEC"),
             nt_seq_rule!("D" => "D", "OD"),
             nt_seq_rule!("OD" => "D"),
@@ -33,7 +32,7 @@ fn grammar() -> Grammar {
             t_or_rule!("D" => "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"),
             nt_seq_rule!("DEC" => "P", "D"),
             t_or_rule!("P" => "."),
-        ]
+        ],
     )
 }
 

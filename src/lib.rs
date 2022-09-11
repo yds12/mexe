@@ -128,7 +128,7 @@ where
 ///
 /// This function will return a [`MexeError`] if the input is not a valid
 /// binary arithmetic expression.
-#[deprecated(since="0.2.0", note="please use `eval` instead")]
+#[deprecated(since = "0.2.0", note = "please use `eval` instead")]
 pub fn eval_binary<T>(expression: T) -> Result<f64>
 where
     T: AsRef<str>,

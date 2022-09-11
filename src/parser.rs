@@ -2,14 +2,11 @@ use crate::{MexeError, Operator, Result, Token};
 
 pub(crate) fn parse_and_evaluate(input: Vec<Token>) -> Result<f64> {
     match ll_parse_expr(&input[..]) {
-        Ok((Some(val), input)) => {
-            if !is_over(input) {
-                // finished parsing but there's something left
-                Err(MexeError::UnexpectedToken(input[0].to_string()))
-            } else {
-                Ok(val)
-            }
+        // finished parsing but there's something left
+        Ok((Some(_), input)) if !is_over(input) => {
+            Err(MexeError::UnexpectedToken(input[0].to_string()))
         }
+        Ok((Some(val), _)) => Ok(val),
         // if value is `None` the parse should have failed earlier (should never happen)
         Ok((None, _)) => Err(MexeError::InternalParserError),
         Err(err) => Err(err),
