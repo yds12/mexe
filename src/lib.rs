@@ -213,7 +213,7 @@ mod tests {
         let exprs = ["(((1", "((1", "(1", "1)))", "1))", "1)"];
 
         for expr in exprs.iter() {
-            if let Ok(_) = eval(expr) {
+            if eval(expr).is_ok() {
                 panic!("{} should not be parsed", expr);
             }
         }

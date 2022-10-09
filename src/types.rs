@@ -18,6 +18,7 @@ impl std::fmt::Display for Operator {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Token {
     LPar,
