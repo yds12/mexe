@@ -1,4 +1,4 @@
-use crate::{consts::*, MexeError, Operator, Result, Token};
+use crate::{MexeError, Operator, Result, Token};
 
 enum LexerState {
     Normal,
@@ -13,14 +13,15 @@ pub(crate) fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 
     for i in 0..chars.len() {
         let (in_number, token) = match chars[i] {
-            SPACE => (false, None),
-            LPAR => (false, Some(Token::LPar)),
-            RPAR => (false, Some(Token::RPar)),
-            ASTERISK => (false, Some(Token::Op(Operator::Mul))),
-            PLUS => (false, Some(Token::Op(Operator::Add))),
-            MINUS => (false, Some(Token::Op(Operator::Sub))),
-            SLASH => (false, Some(Token::Op(Operator::Div))),
-            N0 | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 | N9 => {
+            b' ' => (false, None),
+            b'(' => (false, Some(Token::LPar)),
+            b')' => (false, Some(Token::RPar)),
+            b'*' => (false, Some(Token::Op(Operator::Mul))),
+            b'+' => (false, Some(Token::Op(Operator::Add))),
+            b'-' => (false, Some(Token::Op(Operator::Sub))),
+            b'/' => (false, Some(Token::Op(Operator::Div))),
+
+            b'0'..=b'9' => {
                 state = match state {
                     LexerState::Normal => LexerState::ReadingNumber(i),
                     LexerState::ReadingNumber(_) | LexerState::ReadingDecimals(_) => state,
@@ -28,10 +29,11 @@ pub(crate) fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 
                 (true, None)
             }
-            PERIOD => {
+
+            b'.' => {
                 state = match state {
                     LexerState::Normal | LexerState::ReadingDecimals(_) => {
-                        return Err(MexeError::UnexpectedCharacter(PERIOD, i))
+                        return Err(MexeError::UnexpectedCharacter(b'.', i))
                     }
                     LexerState::ReadingNumber(n) => LexerState::ReadingDecimals(n),
                 };
