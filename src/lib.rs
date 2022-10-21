@@ -194,6 +194,7 @@ mod tests {
 
         float_eq!(2.0, eval("1 + 1").unwrap());
         float_eq!(0.0, eval("1 - 1").unwrap());
+        float_eq!(1.0, eval("1 × 1 ÷ 1").unwrap());
         float_eq!(1.1, eval("(1+1.1) - 1").unwrap());
         float_eq!(1.1, eval("(1+(1.1)) - 1").unwrap());
         float_eq!(1.1, eval("(1+(1.1 + 0)) - 1").unwrap());

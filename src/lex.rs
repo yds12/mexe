@@ -2,6 +2,7 @@ use crate::{MexeError, Operator, Result, Token};
 
 enum LexerState {
     Normal,
+    ReadingUTF8MD,
     ReadingNumber(usize),
     ReadingDecimals(usize),
 }
@@ -24,6 +25,7 @@ pub(crate) fn get_tokens(expression: &str) -> Result<Vec<Token>> {
             b'0'..=b'9' => {
                 state = match state {
                     LexerState::Normal => LexerState::ReadingNumber(i),
+                    LexerState::ReadingUTF8MD |
                     LexerState::ReadingNumber(_) | LexerState::ReadingDecimals(_) => state,
                 };
 
@@ -32,6 +34,7 @@ pub(crate) fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 
             b'.' => {
                 state = match state {
+                    LexerState::ReadingUTF8MD |
                     LexerState::Normal | LexerState::ReadingDecimals(_) => {
                         return Err(MexeError::UnexpectedCharacter(b'.', i))
                     }
@@ -40,6 +43,19 @@ pub(crate) fn get_tokens(expression: &str) -> Result<Vec<Token>> {
 
                 (true, None)
             }
+
+            195/* 0xc3*/ => {
+                //eprintln!("{:?}, {:?}", chars, state);
+                state = LexerState::ReadingUTF8MD;
+                (false, None)
+            }
+
+            151 | 183/* 0x97 | 0xb7*/ if matches!(state, LexerState::ReadingUTF8MD) => {
+                state = LexerState::Normal;    // '×', '÷'
+                (false, Some(Token::Op(if chars[i] == 151 {
+                    Operator::Mul } else { Operator::Div })))
+            }
+
             _ => return Err(MexeError::InvalidCharacter(i)),
         };
 
@@ -56,6 +72,7 @@ pub(crate) fn get_tokens(expression: &str) -> Result<Vec<Token>> {
                 _ => (),
             }
 
+            if matches!(state, LexerState::ReadingUTF8MD) { continue }
             state = LexerState::Normal;
         }
 
@@ -88,6 +105,7 @@ mod tests {
     fn does_not_panic_with_good_input() {
         let exprs = [
             "1+1",
+            "1÷1×1",
             "1.1+1",
             "1.1+1.2",
             "183.387+(2*2.3)",
