@@ -71,7 +71,6 @@
 //! * Crate: [crates.io](https://crates.io/crates/mexe) and [lib.rs](https://lib.rs/crates/mexe)
 //! * Repository: [Github](https://github.com/yds12/mexe)
 
-mod consts;
 mod error;
 mod lex;
 mod parser;
@@ -214,7 +213,7 @@ mod tests {
         let exprs = ["(((1", "((1", "(1", "1)))", "1))", "1)"];
 
         for expr in exprs.iter() {
-            if let Ok(_) = eval(expr) {
+            if eval(expr).is_ok() {
                 panic!("{} should not be parsed", expr);
             }
         }

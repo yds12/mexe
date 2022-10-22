@@ -1,11 +1,10 @@
-use crate::consts::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Operator {
-    Add = PLUS as isize,
-    Sub = MINUS as isize,
-    Mul = ASTERISK as isize,
-    Div = SLASH as isize,
+    Add = b'+' as isize,
+    Sub = b'-' as isize,
+    Mul = b'*' as isize,
+    Div = b'/' as isize,
 }
 
 impl std::fmt::Display for Operator {
@@ -19,6 +18,7 @@ impl std::fmt::Display for Operator {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Token {
     LPar,
