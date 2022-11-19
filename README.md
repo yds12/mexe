@@ -1,3 +1,4 @@
+![loc](https://sloc.xyz/github/yds12/mexe)
 ![tests](https://github.com/yds12/mexe/actions/workflows/unit.yml/badge.svg)
 
 **m**athematical **ex**pression **e**valuator.
