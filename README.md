@@ -5,16 +5,18 @@
 
 ## How to Use
 
-    use mexe::eval;
+```rust
+use mexe::eval;
 
-    fn main() {
-        let forty_six = eval("(5 * 8) + 6").unwrap();
-        let two = eval("1 + 1").unwrap();
-        println!("{} & {}", forty_six, two);
+fn main() {
+    let forty_six = eval("(5 * 8) + 6").unwrap();
+    let two = eval("1 + 1").unwrap();
+    println!("{} & {}", forty_six, two);
 
-        assert_eq!(forty_six, 46.0);
-        assert_eq!(two, 2.0);
-    }
+    assert_eq!(forty_six, 46.0);
+    assert_eq!(two, 2.0);
+}
+```
 
 Note: the above `assert_eq`s work, but for float comparison in general use a
 crate such as `float-cmp`.
@@ -87,15 +89,17 @@ After that run:
 
 Go to `fuzz/fuzz_targets/fn_eval.rs` and paste this code:
 
-    #![no_main]
-    use libfuzzer_sys::fuzz_target;
+```rust
+#![no_main]
+use libfuzzer_sys::fuzz_target;
 
-    fuzz_target!(|data: &[u8]| {
-        // fuzzed code goes here
-        if let Ok(text) = std::str::from_utf8(data) {
-            let _ = mexe::eval(text);
-        }
-    });
+fuzz_target!(|data: &[u8]| {
+    // fuzzed code goes here
+    if let Ok(text) = std::str::from_utf8(data) {
+        let _ = mexe::eval(text);
+    }
+});
+```
 
 Now finally run:
 
