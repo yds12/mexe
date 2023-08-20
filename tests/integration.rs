@@ -1,39 +1,37 @@
-use glc::{nt_seq_rule, t_or_rule, Expression, Grammar};
+#![recursion_limit = "256"]
+use glc::{grammar, Expression, Grammar};
 
 fn grammar() -> Grammar {
-    Grammar(
-        "E".into(),
-        vec![
-            nt_seq_rule!("E" => "T", "E'"),
-            nt_seq_rule!("E'" => "PM", "T", "E'"),
-            t_or_rule!("E'" => ""),
-            t_or_rule!("E'" => ""), // increase prob. by duplicating rule
-            t_or_rule!("E'" => ""), // increase prob. by duplicating rule
-            t_or_rule!("PM" => "+", "-"),
-            nt_seq_rule!("T" => "F", "T'"),
-            nt_seq_rule!("T'" => "MD", "F", "T'"),
-            t_or_rule!("MD" => "*", "/"),
-            t_or_rule!("T'" => ""),
-            t_or_rule!("T'" => ""), // increase prob.
-            t_or_rule!("T'" => ""), // increase prob.
-            nt_seq_rule!("F" => "LP", "E", "RP"),
-            nt_seq_rule!("F" => "M", "LP", "E", "RP"),
-            nt_seq_rule!("F" => "N"),
-            nt_seq_rule!("F" => "M", "N"),
-            t_or_rule!("LP" => "("),
-            t_or_rule!("RP" => ")"),
-            t_or_rule!("M" => "-"),
-            nt_seq_rule!("N" => "D", "DEC"),
-            nt_seq_rule!("D" => "D", "OD"),
-            nt_seq_rule!("OD" => "D"),
-            t_or_rule!("OD" => ""),
-            t_or_rule!("OD" => ""), // increase probability
-            t_or_rule!("OD" => ""), // increase probability
-            t_or_rule!("D" => "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"),
-            nt_seq_rule!("DEC" => "P", "D"),
-            t_or_rule!("P" => "."),
-        ],
-    )
+    grammar!{
+        E => T E_;
+        E_ => PM T E_;
+        E_ => "";
+        E_ => "";
+        E_ => "";
+        PM => "+", "-";
+        T => F T_;
+        T_ => MD F T_;
+        MD => "*", "/";
+        T_ => "";
+        T_ => "";
+        T_ => "";
+        F => LP E RP;
+        F => M LP E RP;
+        F => N;
+        F => M N;
+        LP => "(";
+        RP => ")";
+        M => "-";
+        N => D DEC;
+        D => D OD;
+        OD => D;
+        OD => "";
+        OD => "";
+        OD => "";
+        D => "0", "1", "2", "3", "4", "5", "6", "7", "8", "9";
+        DEC => P D;
+        P => "."
+    }
 }
 
 #[test]
